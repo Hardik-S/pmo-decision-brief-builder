@@ -3,6 +3,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { buildDecisionBrief, fixtureNotes, formatBriefMarkdown } from "./brief";
 
+function normalizeMarkdown(text: string) {
+  return text.replace(/\r\n/g, "\n").trim();
+}
+
 describe("PMO decision brief builder", () => {
   it("recommends the strongest option from fixture notes", () => {
     const brief = buildDecisionBrief(fixtureNotes);
@@ -61,8 +65,10 @@ describe("PMO decision brief builder", () => {
   });
 
   it("keeps the committed example brief in sync with generated output", () => {
-    const expected = formatBriefMarkdown(buildDecisionBrief()).trim();
-    const artifact = readFileSync(join(process.cwd(), "docs", "decision-brief.example.md"), "utf8").trim();
+    const expected = normalizeMarkdown(formatBriefMarkdown(buildDecisionBrief()));
+    const artifact = normalizeMarkdown(
+      readFileSync(join(process.cwd(), "docs", "decision-brief.example.md"), "utf8")
+    );
 
     expect(artifact).toBe(expected);
   });
