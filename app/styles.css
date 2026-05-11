@@ -19,12 +19,14 @@ body {
   background: var(--wash);
   color: var(--ink);
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
 }
 
 .shell {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
   padding: 32px 0;
+  overflow-x: hidden;
 }
 
 .hero {
@@ -55,6 +57,7 @@ h1 {
   font-size: clamp(2rem, 5vw, 4.2rem);
   line-height: 0.98;
   letter-spacing: 0;
+  overflow-wrap: anywhere;
 }
 
 h2 {
@@ -74,11 +77,13 @@ h2 {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
+  min-width: 0;
 }
 
 .scorecard {
   display: grid;
   align-content: center;
+  gap: 8px;
   padding: 22px;
 }
 
@@ -92,6 +97,51 @@ h2 {
 .scorecard p {
   margin: 10px 0 0;
   color: var(--muted);
+}
+
+.scorecard strong {
+  font-size: 1rem;
+}
+
+.scorecard a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.decisionStrip {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr;
+  gap: 1px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--line);
+}
+
+.decisionStrip div {
+  background: var(--panel);
+  padding: 16px;
+}
+
+.decisionStrip span,
+.gate small,
+.option small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.decisionStrip span {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.decisionStrip p {
+  margin: 0;
+  line-height: 1.45;
 }
 
 .grid {
@@ -154,6 +204,7 @@ pre {
   margin: 4px 0 0;
   color: var(--muted);
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .recommendation {
@@ -176,14 +227,37 @@ pre {
   padding-left: 18px;
 }
 
+.factorList {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.factor {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.factor strong {
+  color: var(--danger);
+}
+
 code {
   align-self: start;
+  max-width: 100%;
   border: 1px solid #f3d28a;
   border-radius: 6px;
   background: #fff8e6;
   color: var(--gold);
   padding: 5px 8px;
   font: 0.78rem Consolas, "Courier New", monospace;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .export {
@@ -226,11 +300,60 @@ code {
   gap: 8px;
 }
 
+.gateGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gate {
+  border-right: 1px solid var(--line);
+  padding: 16px;
+}
+
+.gate:last-child {
+  border-right: 0;
+}
+
+.gate > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.gate p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.gate.blocked {
+  border-top: 3px solid var(--danger);
+}
+
+.gate.needs-owner {
+  border-top: 3px solid var(--gold);
+}
+
+.gate.ready {
+  border-top: 3px solid var(--accent);
+}
+
+.artifactNote {
+  font-size: 0.9rem;
+}
+
 @media (max-width: 760px) {
+  h1 {
+    font-size: 2rem;
+    line-height: 1.05;
+  }
+
   .hero,
   .grid,
   .export,
-  .riskGrid {
+  .riskGrid,
+  .gateGrid,
+  .decisionStrip {
     grid-template-columns: 1fr;
   }
 
@@ -244,6 +367,7 @@ code {
   .panelHeader {
     align-items: flex-start;
     flex-direction: column;
+    min-width: 0;
   }
 
   .risk {
@@ -253,5 +377,34 @@ code {
 
   .risk:last-child {
     border-bottom: 0;
+  }
+
+  .gate {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .gate:last-child {
+    border-bottom: 0;
+  }
+
+  .factor {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .shell {
+    width: min(358px, calc(100% - 32px));
+    margin-left: 16px;
+    margin-right: auto;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  .lede {
+    font-size: 1rem;
   }
 }

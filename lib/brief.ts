@@ -5,6 +5,22 @@ export type RawNote = {
   signal: "constraint" | "risk" | "benefit" | "dependency";
 };
 
+export type SignalSummary = Record<RawNote["signal"], number>;
+
+export type ScoringFactor = {
+  label: string;
+  points: number;
+  noteIds: string[];
+};
+
+export type ApprovalGate = {
+  label: string;
+  status: "ready" | "needs-owner" | "blocked";
+  owner: string;
+  evidenceNoteIds: string[];
+  nextStep: string;
+};
+
 export type DecisionOption = {
   id: string;
   title: string;
@@ -13,6 +29,8 @@ export type DecisionOption = {
   benefits: string[];
   risks: string[];
   dependencies: string[];
+  evidenceNoteIds: string[];
+  scoringFactors: ScoringFactor[];
   score: number;
 };
 
@@ -28,6 +46,9 @@ export type DecisionBrief = {
   recommendedOption: DecisionOption;
   options: DecisionOption[];
   riskMatrix: RiskMatrixItem[];
+  sourceNotes: RawNote[];
+  signalSummary: SignalSummary;
+  approvalGates: ApprovalGate[];
   assumptions: string[];
   openQuestions: string[];
   executiveSummary: string;
@@ -69,6 +90,29 @@ const options: DecisionOption[] = [
     benefits: ["Delivers visible progress within three weeks", "Avoids paid migration before steering approval", "Creates evidence for a larger workflow decision"],
     risks: ["Manual handoff remains after the pilot", "Synthetic examples may understate production edge cases"],
     dependencies: ["Synthetic fixture set", "Sponsor-approved success criteria"],
+    evidenceNoteIds: ["note-001", "note-002", "note-003", "note-004"],
+    scoringFactors: [
+      {
+        label: "Near-term delivery",
+        points: 28,
+        noteIds: ["note-001", "note-004"]
+      },
+      {
+        label: "Budget restraint",
+        points: 22,
+        noteIds: ["note-001"]
+      },
+      {
+        label: "Data-handling safety",
+        points: 20,
+        noteIds: ["note-003"]
+      },
+      {
+        label: "Operating pain addressed",
+        points: 16,
+        noteIds: ["note-002"]
+      }
+    ],
     score: 86
   },
   {
@@ -79,6 +123,24 @@ const options: DecisionOption[] = [
     benefits: ["Targets the complete operating pain", "Reduces repeated manual triage if approvals land"],
     risks: ["Requires policy decisions that are not ready", "Likely misses the three-week evidence window", "Introduces client-record handling before security approval"],
     dependencies: ["Data owner", "Security approval", "Budget approval"],
+    evidenceNoteIds: ["note-002", "note-003", "note-004"],
+    scoringFactors: [
+      {
+        label: "Operating pain addressed",
+        points: 24,
+        noteIds: ["note-002"]
+      },
+      {
+        label: "Approval readiness",
+        points: 12,
+        noteIds: ["note-003", "note-004"]
+      },
+      {
+        label: "Timeline fit",
+        points: 18,
+        noteIds: ["note-001"]
+      }
+    ],
     score: 54
   },
   {
@@ -89,11 +151,55 @@ const options: DecisionOption[] = [
     benefits: ["Avoids throwaway implementation", "Keeps technology choices aligned with budget cycle"],
     risks: ["Leaves current intake fragmentation untouched", "Loses sponsor momentum", "Produces no near-term learning"],
     dependencies: ["Budget decision", "Vendor shortlist"],
+    evidenceNoteIds: ["note-001", "note-002"],
+    scoringFactors: [
+      {
+        label: "Budget restraint",
+        points: 20,
+        noteIds: ["note-001"]
+      },
+      {
+        label: "Learning velocity",
+        points: 8,
+        noteIds: ["note-002"]
+      },
+      {
+        label: "Sponsor momentum",
+        points: 13,
+        noteIds: ["note-001"]
+      }
+    ],
     score: 41
   }
 ];
 
+function summarizeSignals(notes: readonly RawNote[]): SignalSummary {
+  return notes.reduce<SignalSummary>(
+    (summary, note) => ({
+      ...summary,
+      [note.signal]: summary[note.signal] + 1
+    }),
+    { benefit: 0, constraint: 0, dependency: 0, risk: 0 }
+  );
+}
+
+function cloneOption(option: DecisionOption): DecisionOption {
+  return {
+    ...option,
+    benefits: [...option.benefits],
+    risks: [...option.risks],
+    dependencies: [...option.dependencies],
+    evidenceNoteIds: [...option.evidenceNoteIds],
+    scoringFactors: option.scoringFactors.map((factor) => ({
+      ...factor,
+      noteIds: [...factor.noteIds]
+    }))
+  };
+}
+
 export function buildDecisionBrief(notes: RawNote[] = fixtureNotes): DecisionBrief {
+  const sourceNotes = notes.map((note) => ({ ...note }));
+  const signalSummary = summarizeSignals(sourceNotes);
   const riskMatrix: RiskMatrixItem[] = [
     {
       label: "Production data exposure",
@@ -115,13 +221,39 @@ export function buildDecisionBrief(notes: RawNote[] = fixtureNotes): DecisionBri
     }
   ];
 
-  const recommendedOption = [...options].sort((a, b) => b.score - a.score)[0];
+  const rankedOptions = options.map(cloneOption).sort((a, b) => b.score - a.score);
+  const recommendedOption = rankedOptions[0];
 
   return {
     decisionQuestion: "How should the PMO create near-term intake visibility without overcommitting to an unapproved platform migration?",
     recommendedOption,
-    options,
+    options: rankedOptions,
     riskMatrix,
+    sourceNotes,
+    signalSummary,
+    approvalGates: [
+      {
+        label: "Production data handling",
+        status: "blocked",
+        owner: "Security reviewer",
+        evidenceNoteIds: ["note-003"],
+        nextStep: "Approve redacted-copy handling before any live-record intake."
+      },
+      {
+        label: "Pilot success metric",
+        status: "needs-owner",
+        owner: "Executive sponsor",
+        evidenceNoteIds: ["note-001", "note-002"],
+        nextStep: "Choose the steering metric that proves the pilot is worth expanding."
+      },
+      {
+        label: "Fixture-only pilot scope",
+        status: "ready",
+        owner: "PMO analyst",
+        evidenceNoteIds: ["note-001", "note-004"],
+        nextStep: "Use the synthetic intake board to prepare the steering decision."
+      }
+    ],
     assumptions: [
       "The first public slice uses synthetic PMO notes only.",
       "Decision support is the product goal; this is not generic status reporting.",
@@ -138,10 +270,21 @@ export function buildDecisionBrief(notes: RawNote[] = fixtureNotes): DecisionBri
 
 export function formatBriefMarkdown(brief: DecisionBrief) {
   const optionLines = brief.options
-    .map((option) => `- ${option.title} (${option.score}/100): ${option.summary}`)
+    .map((option) => {
+      const factorText = option.scoringFactors
+        .map((factor) => `${factor.label} +${factor.points} from ${factor.noteIds.join(", ")}`)
+        .join("; ");
+      return `- ${option.title} (${option.score}/100): ${option.summary} Owner: ${option.owner}. Evidence: ${option.evidenceNoteIds.join(", ")}. Scoring: ${factorText}`;
+    })
     .join("\n");
   const riskLines = brief.riskMatrix
     .map((risk) => `- ${risk.label}: ${risk.likelihood} likelihood, ${risk.impact} impact. ${risk.mitigation}`)
+    .join("\n");
+  const sourceLines = brief.sourceNotes
+    .map((note) => `- ${note.id} [${note.signal}] ${note.source}: ${note.text}`)
+    .join("\n");
+  const approvalLines = brief.approvalGates
+    .map((gate) => `- ${gate.status} - ${gate.label}: ${gate.owner}. ${gate.nextStep} Evidence: ${gate.evidenceNoteIds.join(", ")}`)
     .join("\n");
 
   return `# PMO Decision Brief
@@ -152,11 +295,26 @@ ${brief.decisionQuestion}
 ## Recommendation
 ${brief.executiveSummary}
 
+## Source Notes
+${sourceLines}
+
+## Signal Summary
+- Constraint notes: ${brief.signalSummary.constraint}
+- Benefit notes: ${brief.signalSummary.benefit}
+- Risk notes: ${brief.signalSummary.risk}
+- Dependency notes: ${brief.signalSummary.dependency}
+
 ## Options
 ${optionLines}
 
 ## Risk Matrix
 ${riskLines}
+
+## Approval Gates
+${approvalLines}
+
+## Assumptions
+${brief.assumptions.map((assumption) => `- ${assumption}`).join("\n")}
 
 ## Open Questions
 ${brief.openQuestions.map((question) => `- ${question}`).join("\n")}
