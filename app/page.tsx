@@ -120,7 +120,7 @@ export default function Home() {
               </div>
               <p>{gate.nextStep}</p>
               <small>
-                Owner: {gate.owner} · Evidence: {gate.evidenceNoteIds.join(", ")}
+                Owner: {gate.owner} - Evidence: {gate.evidenceNoteIds.join(", ")}
               </small>
             </div>
           ))}
