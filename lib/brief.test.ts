@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { buildDecisionBrief, fixtureNotes, formatBriefMarkdown } from "./brief";
 
+const normalizeLineEndings = (value: string) => value.replace(/\r\n/g, "\n");
+
 describe("PMO decision brief builder", () => {
   it("recommends the strongest option from fixture notes", () => {
     const brief = buildDecisionBrief(fixtureNotes);
@@ -62,8 +64,19 @@ describe("PMO decision brief builder", () => {
 
   it("keeps the committed example brief in sync with generated output", () => {
     const expected = formatBriefMarkdown(buildDecisionBrief()).trim();
-    const artifact = readFileSync(join(process.cwd(), "docs", "decision-brief.example.md"), "utf8").trim();
+    const artifact = normalizeLineEndings(
+      readFileSync(join(process.cwd(), "docs", "decision-brief.example.md"), "utf8")
+    ).trim();
 
     expect(artifact).toBe(expected);
+  });
+
+  it("keeps the visible approval-gate copy free from fragile separators", () => {
+    const pageSource = readFileSync(join(process.cwd(), "app", "page.tsx"), "utf8");
+
+    expect(pageSource).not.toContain(String.fromCharCode(0xb7));
+    expect(pageSource).not.toContain(String.fromCharCode(0xc2));
+    expect(pageSource).not.toContain("\uFFFD");
+    expect(pageSource).toContain("Owner: {gate.owner} | Evidence:");
   });
 });
