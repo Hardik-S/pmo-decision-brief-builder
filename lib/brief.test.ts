@@ -66,4 +66,10 @@ describe("PMO decision brief builder", () => {
 
     expect(artifact).toBe(expected);
   });
+
+  it("keeps reviewer-facing source text free of mojibake", () => {
+    const pageSource = readFileSync(join(process.cwd(), "app", "page.tsx"), "utf8");
+
+    expect(pageSource).not.toMatch(/[\u00b7\u00c2\ufffd]/u);
+  });
 });

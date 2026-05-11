@@ -36,6 +36,7 @@ npm run dev
 - The UI separates source notes, recommendation, scoring factors, approval gates, risks, and generated brief preview to keep the workflow decision-oriented.
 - The product language avoids generic reporting claims; the artifact is meant to help a sponsor choose a direction.
 - The generated sponsor artifact is committed in `docs/decision-brief.example.md` and protected by a drift test.
+- Reviewer-facing UI copy uses ASCII-safe separators so the static source stays readable across Windows, GitHub, and browser rendering paths.
 
 ## PMO Workflow Assumptions
 
