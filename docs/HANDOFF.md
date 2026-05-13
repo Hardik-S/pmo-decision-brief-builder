@@ -12,8 +12,8 @@
 
 - `app/page.tsx`: renders the decision trace, notes, recommendation, approval gates, risk matrix, and Markdown preview.
 - `app/styles.css`: responsive layout and reviewer-focused visual hierarchy.
-- `lib/brief.ts`: typed fixture notes, scoring factors, approval gates, brief generation, and Markdown formatter.
-- `lib/brief.test.ts`: regression tests for recommendation, traceability, Markdown completeness, and committed artifact drift.
+- `lib/brief.ts`: typed fixture notes, scoring factors, approval gates, source-note traceability guard, brief generation, and Markdown formatter.
+- `lib/brief.test.ts`: regression tests for recommendation, source-note evidence coverage, Markdown completeness, and committed artifact drift.
 - `docs/fixture-provenance.md`: source-note rationale and synthetic-data boundary.
 - `docs/decision-brief.example.md`: committed sponsor artifact generated from the fixture.
 - `.github/workflows/verify.yml`: GitHub Actions gate for install, tests, typecheck, and build.
@@ -22,6 +22,7 @@
 
 - The fixture is deterministic and synthetic. It does not ingest real PMO notes.
 - Scoring factors are explicit fixture judgment, not a generalized NLP scorer.
+- Every option score and approval gate must cite source note IDs that exist in the supplied fixture note set.
 - There is no persistence, auth, upload, email sending, or live workflow automation.
 - Browser screenshot evidence should be refreshed after every meaningful UI change.
 

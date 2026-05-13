@@ -197,6 +197,26 @@ function cloneOption(option: DecisionOption): DecisionOption {
   };
 }
 
+function requireTraceableEvidence(
+  sourceNotes: readonly RawNote[],
+  decisionOptions: readonly DecisionOption[],
+  approvalGates: readonly ApprovalGate[]
+) {
+  const sourceNoteIds = new Set(sourceNotes.map((note) => note.id));
+  const citedNoteIds = new Set<string>();
+
+  decisionOptions.forEach((option) => {
+    option.evidenceNoteIds.forEach((noteId) => citedNoteIds.add(noteId));
+    option.scoringFactors.forEach((factor) => factor.noteIds.forEach((noteId) => citedNoteIds.add(noteId)));
+  });
+  approvalGates.forEach((gate) => gate.evidenceNoteIds.forEach((noteId) => citedNoteIds.add(noteId)));
+
+  const missingNoteIds = [...citedNoteIds].filter((noteId) => !sourceNoteIds.has(noteId)).sort();
+  if (missingNoteIds.length > 0) {
+    throw new Error(`Decision brief traceability is incomplete: missing source notes ${missingNoteIds.join(", ")}`);
+  }
+}
+
 export function buildDecisionBrief(notes: RawNote[] = fixtureNotes): DecisionBrief {
   const sourceNotes = notes.map((note) => ({ ...note }));
   const signalSummary = summarizeSignals(sourceNotes);
@@ -223,6 +243,31 @@ export function buildDecisionBrief(notes: RawNote[] = fixtureNotes): DecisionBri
 
   const rankedOptions = options.map(cloneOption).sort((a, b) => b.score - a.score);
   const recommendedOption = rankedOptions[0];
+  const approvalGates: ApprovalGate[] = [
+    {
+      label: "Production data handling",
+      status: "blocked",
+      owner: "Security reviewer",
+      evidenceNoteIds: ["note-003"],
+      nextStep: "Approve redacted-copy handling before any live-record intake."
+    },
+    {
+      label: "Pilot success metric",
+      status: "needs-owner",
+      owner: "Executive sponsor",
+      evidenceNoteIds: ["note-001", "note-002"],
+      nextStep: "Choose the steering metric that proves the pilot is worth expanding."
+    },
+    {
+      label: "Fixture-only pilot scope",
+      status: "ready",
+      owner: "PMO analyst",
+      evidenceNoteIds: ["note-001", "note-004"],
+      nextStep: "Use the synthetic intake board to prepare the steering decision."
+    }
+  ];
+
+  requireTraceableEvidence(sourceNotes, rankedOptions, approvalGates);
 
   return {
     decisionQuestion: "How should the PMO create near-term intake visibility without overcommitting to an unapproved platform migration?",
@@ -231,29 +276,7 @@ export function buildDecisionBrief(notes: RawNote[] = fixtureNotes): DecisionBri
     riskMatrix,
     sourceNotes,
     signalSummary,
-    approvalGates: [
-      {
-        label: "Production data handling",
-        status: "blocked",
-        owner: "Security reviewer",
-        evidenceNoteIds: ["note-003"],
-        nextStep: "Approve redacted-copy handling before any live-record intake."
-      },
-      {
-        label: "Pilot success metric",
-        status: "needs-owner",
-        owner: "Executive sponsor",
-        evidenceNoteIds: ["note-001", "note-002"],
-        nextStep: "Choose the steering metric that proves the pilot is worth expanding."
-      },
-      {
-        label: "Fixture-only pilot scope",
-        status: "ready",
-        owner: "PMO analyst",
-        evidenceNoteIds: ["note-001", "note-004"],
-        nextStep: "Use the synthetic intake board to prepare the steering decision."
-      }
-    ],
+    approvalGates,
     assumptions: [
       "The first public slice uses synthetic PMO notes only.",
       "Decision support is the product goal; this is not generic status reporting.",

@@ -38,6 +38,7 @@ npm run dev
 - The generated sponsor artifact is committed in `docs/decision-brief.example.md` and protected by a drift test.
 - The artifact drift test normalizes CRLF and LF line endings before comparing content so Windows checkouts still verify the sponsor brief rather than failing on checkout policy.
 - Reviewer-facing UI copy uses ASCII-safe separators so the static source stays readable across Windows, GitHub, and browser rendering paths.
+- The brief builder rejects any source-note set that cannot support every option score and approval-gate evidence ID, preventing future fixture edits from producing an untraceable sponsor artifact.
 
 ## PMO Workflow Assumptions
 
@@ -50,7 +51,7 @@ npm run dev
 - `app/page.tsx`: decision-support UI and Markdown preview.
 - `app/styles.css`: responsive layout and compact reviewer workflow styling.
 - `lib/brief.ts`: fixture notes, scoring factors, approval gates, risk matrix, and Markdown formatter.
-- `lib/brief.test.ts`: tests for recommendation logic, traceability, artifact completeness, and example drift.
+- `lib/brief.test.ts`: tests for recommendation logic, source-note evidence coverage, artifact completeness, and example drift.
 - `docs/fixture-provenance.md`: synthetic source-note rationale and data boundary.
 - `docs/HANDOFF.md`: reviewer route, limitations, and next improvements.
 - `.github/workflows/verify.yml`: install, test, typecheck, and build gate.
