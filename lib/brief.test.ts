@@ -54,6 +54,14 @@ describe("PMO decision brief builder", () => {
     });
   });
 
+  it("rejects source-note sets that cannot support option and gate evidence", () => {
+    const incompleteNotes = fixtureNotes.filter((note) => note.id !== "note-003");
+
+    expect(() => buildDecisionBrief(incompleteNotes)).toThrow(
+      "Decision brief traceability is incomplete: missing source notes note-003"
+    );
+  });
+
   it("formats source notes, assumptions, and approval gates into the Markdown artifact", () => {
     const markdown = formatBriefMarkdown(buildDecisionBrief());
 
