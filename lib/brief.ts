@@ -197,6 +197,24 @@ function cloneOption(option: DecisionOption): DecisionOption {
   };
 }
 
+function requireUniqueSourceNoteIds(sourceNotes: readonly RawNote[]) {
+  const seenNoteIds = new Set<string>();
+  const duplicateNoteIds = new Set<string>();
+
+  sourceNotes.forEach((note) => {
+    if (seenNoteIds.has(note.id)) {
+      duplicateNoteIds.add(note.id);
+    }
+    seenNoteIds.add(note.id);
+  });
+
+  if (duplicateNoteIds.size > 0) {
+    throw new Error(
+      `Decision brief traceability is ambiguous: duplicate source note IDs ${[...duplicateNoteIds].sort().join(", ")}`
+    );
+  }
+}
+
 function requireTraceableEvidence(
   sourceNotes: readonly RawNote[],
   decisionOptions: readonly DecisionOption[],
@@ -219,6 +237,7 @@ function requireTraceableEvidence(
 
 export function buildDecisionBrief(notes: RawNote[] = fixtureNotes): DecisionBrief {
   const sourceNotes = notes.map((note) => ({ ...note }));
+  requireUniqueSourceNoteIds(sourceNotes);
   const signalSummary = summarizeSignals(sourceNotes);
   const riskMatrix: RiskMatrixItem[] = [
     {

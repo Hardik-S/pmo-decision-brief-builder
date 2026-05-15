@@ -17,6 +17,7 @@ This project uses synthetic PMO notes only. The fixture is intentionally small s
 - Scoring factors are explicit product judgment, not hidden model output.
 - Approval gates make the human owner and next step visible before any production workflow is implied.
 - The generated Markdown artifact is committed at `docs/decision-brief.example.md` and covered by a drift test.
+- Note IDs must stay unique because option scores and approval gates cite those IDs as evidence anchors. The builder rejects duplicated IDs before checking citation coverage so a future fixture expansion cannot make a sponsor reference ambiguous.
 
 ## Boundaries
 

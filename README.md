@@ -39,6 +39,7 @@ npm run dev
 - The artifact drift test normalizes CRLF and LF line endings before comparing content so Windows checkouts still verify the sponsor brief rather than failing on checkout policy.
 - Reviewer-facing UI copy uses ASCII-safe separators so the static source stays readable across Windows, GitHub, and browser rendering paths.
 - The brief builder rejects any source-note set that cannot support every option score and approval-gate evidence ID, preventing future fixture edits from producing an untraceable sponsor artifact.
+- Source note IDs are treated as unique evidence anchors. The builder rejects duplicate IDs before citation coverage checks because a reused ID would make sponsor-facing scoring and approval-gate references ambiguous.
 
 ## PMO Workflow Assumptions
 
