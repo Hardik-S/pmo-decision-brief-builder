@@ -62,6 +62,14 @@ describe("PMO decision brief builder", () => {
     );
   });
 
+  it("rejects duplicate source-note IDs before evidence becomes ambiguous", () => {
+    const duplicatedNotes = [...fixtureNotes, { ...fixtureNotes[0], text: "A second note reused note-001." }];
+
+    expect(() => buildDecisionBrief(duplicatedNotes)).toThrow(
+      "Decision brief traceability is ambiguous: duplicate source note IDs note-001"
+    );
+  });
+
   it("formats source notes, assumptions, and approval gates into the Markdown artifact", () => {
     const markdown = formatBriefMarkdown(buildDecisionBrief());
 
