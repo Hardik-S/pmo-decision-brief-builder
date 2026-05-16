@@ -70,6 +70,14 @@ describe("PMO decision brief builder", () => {
     );
   });
 
+  it("rejects blank source-note IDs before they become sponsor evidence anchors", () => {
+    const blankIdNotes = fixtureNotes.map((note) => (note.id === "note-001" ? { ...note, id: "   " } : note));
+
+    expect(() => buildDecisionBrief(blankIdNotes)).toThrow(
+      "Decision brief traceability is ambiguous: source note IDs must not be blank"
+    );
+  });
+
   it("formats source notes, assumptions, and approval gates into the Markdown artifact", () => {
     const markdown = formatBriefMarkdown(buildDecisionBrief());
 
