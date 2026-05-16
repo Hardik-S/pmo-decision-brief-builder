@@ -22,7 +22,7 @@
 
 - The fixture is deterministic and synthetic. It does not ingest real PMO notes.
 - Scoring factors are explicit fixture judgment, not a generalized NLP scorer.
-- Every option score and approval gate must cite source note IDs that exist in the supplied fixture note set.
+- Every option score and approval gate must cite source note IDs that exist in the supplied fixture note set. Source note IDs must be nonblank, unique, and free of leading/trailing whitespace so reviewer evidence anchors do not diverge from their rendered labels.
 - There is no persistence, auth, upload, email sending, or live workflow automation.
 - Browser screenshot evidence should be refreshed after every meaningful UI change.
 

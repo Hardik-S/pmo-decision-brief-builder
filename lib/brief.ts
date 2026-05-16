@@ -202,8 +202,14 @@ function requireUniqueSourceNoteIds(sourceNotes: readonly RawNote[]) {
   const duplicateNoteIds = new Set<string>();
 
   sourceNotes.forEach((note) => {
-    if (note.id.trim().length === 0) {
+    const normalizedId = note.id.trim();
+    if (normalizedId.length === 0) {
       throw new Error("Decision brief traceability is ambiguous: source note IDs must not be blank");
+    }
+    if (normalizedId !== note.id) {
+      throw new Error(
+        "Decision brief traceability is ambiguous: source note IDs must not include leading or trailing whitespace"
+      );
     }
     if (seenNoteIds.has(note.id)) {
       duplicateNoteIds.add(note.id);

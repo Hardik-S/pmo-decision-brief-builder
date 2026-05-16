@@ -78,6 +78,14 @@ describe("PMO decision brief builder", () => {
     );
   });
 
+  it("rejects padded source-note IDs before reviewer evidence anchors diverge", () => {
+    const paddedIdNotes = fixtureNotes.map((note) => (note.id === "note-001" ? { ...note, id: " note-001 " } : note));
+
+    expect(() => buildDecisionBrief(paddedIdNotes)).toThrow(
+      "Decision brief traceability is ambiguous: source note IDs must not include leading or trailing whitespace"
+    );
+  });
+
   it("formats source notes, assumptions, and approval gates into the Markdown artifact", () => {
     const markdown = formatBriefMarkdown(buildDecisionBrief());
 
